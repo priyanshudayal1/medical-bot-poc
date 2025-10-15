@@ -412,28 +412,71 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-green-50 dark:from-gray-900 dark:via-blue-950 dark:to-gray-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+            rotate: [0, 90, 0],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-1/2 -left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.3, 0.5, 0.3],
+            rotate: [90, 0, 90],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute -bottom-1/2 -right-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl"
+        />
+      </div>
+
+      {/* Header with enhanced styling */}
       <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 100 }}
+        className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-50 shadow-lg"
       >
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* Logo with enhanced animation */}
             <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
+              animate={{
+                rotate: [0, 10, -10, 0],
+                scale: [1, 1.05, 1],
+              }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              className="relative"
             >
-              <MdHealthAndSafety className="text-4xl text-blue-500" />
+              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl" />
+              <div className="relative bg-gradient-to-br from-blue-500 to-cyan-600 p-3 rounded-2xl shadow-xl">
+                <MdHealthAndSafety className="text-3xl text-white" />
+              </div>
             </motion.div>
+
+            {/* Title section */}
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+              <motion.h1
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent"
+              >
                 Dr. HealthAI
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-sm text-gray-600 dark:text-gray-400 font-medium"
+              >
                 Your Virtual Medical Assistant
-              </p>
+              </motion.p>
             </div>
           </div>
 
@@ -441,50 +484,79 @@ export default function Home() {
             status={status}
             message={
               status === "connecting"
-                ? "Initializing..."
+                ? "Initializing"
                 : status === "connected"
                 ? "Ready"
                 : status === "listening"
-                ? "Listening..."
+                ? "Listening"
                 : status === "processing"
-                ? "Thinking..."
-                : "Connection Error"
+                ? "Thinking"
+                : status === "speaking"
+                ? "Speaking"
+                : "Error"
             }
           />
         </div>
       </motion.header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Chat Section */}
+      <main className="max-w-7xl mx-auto px-6 py-8 relative z-10">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Chat Section with enhanced styling */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={{ type: "spring", stiffness: 80 }}
             className="lg:col-span-2"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl h-[calc(100vh-200px)] flex flex-col">
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 h-[calc(100vh-180px)] flex flex-col overflow-hidden">
+              {/* Chat header */}
+              <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 dark:from-blue-600/20 dark:to-cyan-600/20 px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50" />
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Conversation
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                    {messages.length} messages
+                  </span>
+                </div>
+              </div>
+
+              {/* Messages with custom scrollbar */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 scroll-smooth scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
                 <AnimatePresence>
                   {messages.map((message, index) => (
                     <ChatMessage key={index} message={message} index={index} />
                   ))}
                 </AnimatePresence>
 
-                {/* Current transcript */}
+                {/* Current transcript with enhanced styling */}
                 {currentTranscript && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex gap-3 mb-4"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex gap-4 mb-4 flex-row-reverse"
                   >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-green-500/20">
-                      <FaMicrophone className="text-green-500" />
-                    </div>
-                    <div className="max-w-[70%] rounded-2xl px-4 py-3 bg-gray-100 dark:bg-gray-700">
-                      <p className="text-sm text-gray-600 dark:text-gray-300 italic">
-                        {currentTranscript}...
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                      className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg ring-2 ring-green-400/50"
+                    >
+                      <FaMicrophone className="text-white text-lg" />
+                    </motion.div>
+                    <div className="max-w-[75%] rounded-2xl px-5 py-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 border border-gray-300 dark:border-gray-600 shadow-md">
+                      <p className="text-sm text-gray-700 dark:text-gray-200 italic font-medium">
+                        {currentTranscript}
+                        <motion.span
+                          animate={{ opacity: [0, 1, 0] }}
+                          transition={{ duration: 1, repeat: Infinity }}
+                        >
+                          ...
+                        </motion.span>
                       </p>
                     </div>
                   </motion.div>
@@ -493,8 +565,8 @@ export default function Home() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Voice Visualizer */}
-              <div className="border-t border-gray-200 dark:border-gray-700 p-4">
+              {/* Voice Visualizer with enhanced container */}
+              <div className="border-t border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-gray-50/50 to-blue-50/50 dark:from-gray-800/50 dark:to-blue-900/30 p-4">
                 <VoiceVisualizer
                   isActive={isListening || isBotSpeaking}
                   type={isListening ? "listening" : "speaking"}
@@ -503,125 +575,227 @@ export default function Home() {
             </div>
           </motion.div>
 
-          {/* Control Panel */}
+          {/* Control Panel with enhanced styling */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={{ type: "spring", stiffness: 80, delay: 0.1 }}
             className="space-y-6"
           >
-            {/* Call Control */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <FaHeartbeat className="text-red-500" />
+            {/* Call Control with enhanced design */}
+            <motion.div
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-gray-200/50 dark:border-gray-700/50"
+            >
+              <h3 className="text-lg font-bold mb-5 flex items-center gap-3 text-gray-800 dark:text-white">
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <FaHeartbeat className="text-2xl text-red-500" />
+                </motion.div>
                 Voice Call
               </h3>
 
               <div className="space-y-4">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={isCallActive ? endCall : startCall}
                   disabled={!isInitialized || status === "error"}
-                  className={`w-full py-4 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-3 ${
+                  className={`w-full py-5 rounded-2xl font-bold text-white transition-all flex items-center justify-center gap-3 shadow-lg relative overflow-hidden ${
                     isCallActive
-                      ? "bg-red-500 hover:bg-red-600"
-                      : "bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      ? "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 shadow-red-500/30"
+                      : "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed shadow-green-500/30"
                   }`}
                 >
-                  {isCallActive ? (
-                    <>
-                      <FaPhoneSlash className="text-xl" />
-                      End Call
-                    </>
-                  ) : (
-                    <>
-                      <FaPhone className="text-xl" />
-                      Start Call
-                    </>
-                  )}
+                  {/* Button glow effect */}
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.5, 1],
+                      opacity: [0.5, 0.8, 0.5],
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className={`absolute inset-0 ${
+                      isCallActive ? "bg-red-500/30" : "bg-green-500/30"
+                    } blur-xl`}
+                  />
+
+                  <span className="relative z-10 flex items-center gap-3">
+                    {isCallActive ? (
+                      <>
+                        <FaPhoneSlash className="text-2xl" />
+                        End Call
+                      </>
+                    ) : (
+                      <>
+                        <FaPhone className="text-2xl" />
+                        Start Call
+                      </>
+                    )}
+                  </span>
                 </motion.button>
 
                 {error && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-sm text-red-800 dark:text-red-200"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 border border-red-300 dark:border-red-700 rounded-2xl text-sm text-red-800 dark:text-red-200 font-medium shadow-lg"
                   >
                     {error}
                   </motion.div>
                 )}
               </div>
-            </div>
+            </motion.div>
 
-            {/* Status Info */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <FaRobot className="text-blue-500" />
+            {/* Status Info with enhanced design */}
+            <motion.div
+              whileHover={{ y: -2 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-gray-200/50 dark:border-gray-700/50"
+            >
+              <h3 className="text-lg font-bold mb-5 flex items-center gap-3 text-gray-800 dark:text-white">
+                <FaRobot className="text-2xl text-blue-500" />
                 Bot Status
               </h3>
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-blue-900/30 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-600/50"
+                >
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Listening
                   </span>
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      isListening ? "bg-green-500 animate-pulse" : "bg-gray-300"
-                    }`}
-                  />
-                </div>
+                  <div className="relative">
+                    {isListening && (
+                      <motion.div
+                        animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="absolute inset-0 bg-green-500 rounded-full blur-md"
+                      />
+                    )}
+                    <div
+                      className={`w-4 h-4 rounded-full relative z-10 shadow-lg ${
+                        isListening
+                          ? "bg-green-500 animate-pulse"
+                          : "bg-gray-300 dark:bg-gray-600"
+                      }`}
+                    />
+                  </div>
+                </motion.div>
 
-                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-purple-50 dark:from-gray-700 dark:to-purple-900/30 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-600/50"
+                >
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Processing
                   </span>
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      isProcessing
-                        ? "bg-yellow-500 animate-pulse"
-                        : "bg-gray-300"
-                    }`}
-                  />
-                </div>
+                  <div className="relative">
+                    {isProcessing && (
+                      <motion.div
+                        animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="absolute inset-0 bg-yellow-500 rounded-full blur-md"
+                      />
+                    )}
+                    <div
+                      className={`w-4 h-4 rounded-full relative z-10 shadow-lg ${
+                        isProcessing
+                          ? "bg-yellow-500 animate-pulse"
+                          : "bg-gray-300 dark:bg-gray-600"
+                      }`}
+                    />
+                  </div>
+                </motion.div>
 
-                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-cyan-50 dark:from-gray-700 dark:to-cyan-900/30 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-600/50"
+                >
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Speaking
                   </span>
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      isBotSpeaking
-                        ? "bg-blue-500 animate-pulse"
-                        : "bg-gray-300"
-                    }`}
-                  />
-                </div>
+                  <div className="relative">
+                    {isBotSpeaking && (
+                      <motion.div
+                        animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="absolute inset-0 bg-blue-500 rounded-full blur-md"
+                      />
+                    )}
+                    <div
+                      className={`w-4 h-4 rounded-full relative z-10 shadow-lg ${
+                        isBotSpeaking
+                          ? "bg-blue-500 animate-pulse"
+                          : "bg-gray-300 dark:bg-gray-600"
+                      }`}
+                    />
+                  </div>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Instructions */}
-            <div className="bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl shadow-xl p-6 text-white">
-              <h3 className="text-lg font-semibold mb-3">How to Use</h3>
-              <ol className="space-y-2 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="font-semibold">1.</span>
-                  <span>Click &quot;Start Call&quot; to begin</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-semibold">2.</span>
-                  <span>Speak your health concerns clearly</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-semibold">3.</span>
-                  <span>Wait for Dr. HealthAI to respond</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-semibold">4.</span>
-                  <span>Continue the conversation naturally</span>
-                </li>
+            {/* Instructions with enhanced design */}
+            <motion.div
+              whileHover={{ y: -2, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="bg-gradient-to-br from-blue-500 via-cyan-500 to-green-500 rounded-3xl shadow-2xl p-6 text-white relative overflow-hidden"
+            >
+              {/* Animated background pattern */}
+              <motion.div
+                animate={{
+                  backgroundPosition: ["0% 0%", "100% 100%"],
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+                className="absolute inset-0 opacity-30"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent)",
+                  backgroundSize: "20px 20px",
+                }}
+              />
+
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2 relative z-10">
+                <motion.span
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  💡
+                </motion.span>
+                How to Use
+              </h3>
+              <ol className="space-y-3 text-sm relative z-10">
+                {[
+                  { num: "1", text: 'Click "Start Call" to begin' },
+                  { num: "2", text: "Speak your health concerns clearly" },
+                  { num: "3", text: "Wait for Dr. HealthAI to respond" },
+                  { num: "4", text: "Continue the conversation naturally" },
+                ].map((item, idx) => (
+                  <motion.li
+                    key={idx}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    whileHover={{ x: 5 }}
+                    className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3"
+                  >
+                    <span className="font-bold text-lg bg-white/20 w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0">
+                      {item.num}
+                    </span>
+                    <span className="leading-relaxed font-medium">
+                      {item.text}
+                    </span>
+                  </motion.li>
+                ))}
               </ol>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </main>
