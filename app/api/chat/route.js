@@ -44,21 +44,49 @@ export async function POST(request) {
     // Build conversation history
     // Filter out any messages before the first user message (e.g., bot introduction)
     // Gemini requires conversations to start with 'user' role
-    let history = conversationHistory.map((msg) => ({
-      role: msg.role === "bot" ? "model" : "user",
-      parts: [{ text: msg.content }],
-    }));
+    let history = conversationHistory
+      .map((msg) => ({
+        role: msg.role === "bot" ? "model" : "user",
+        parts: [{ text: msg.content }],
+      }))
+      .filter(
+        (msg) => msg.parts[0].text && msg.parts[0].text.trim().length > 0
+      ); // Remove empty messages
 
     // Find the first user message index
     const firstUserIndex = history.findIndex((msg) => msg.role === "user");
 
-    // If history starts with bot message, remove it
+    // If history starts with bot message, remove all messages before first user message
     if (firstUserIndex > 0) {
       history = history.slice(firstUserIndex);
     }
 
+    // Additional validation: Ensure history alternates between user and model
+    // and doesn't end with a user message (since we're sending a new user message)
+    const validHistory = [];
+    let expectedRole = "user";
+
+    for (const msg of history) {
+      if (msg.role === expectedRole) {
+        validHistory.push(msg);
+        expectedRole = expectedRole === "user" ? "model" : "user";
+      }
+    }
+
+    // If history is not empty and ends with 'user', remove the last message
+    // because we're about to send a new user message
+    if (
+      validHistory.length > 0 &&
+      validHistory[validHistory.length - 1].role === "user"
+    ) {
+      validHistory.pop();
+    }
+
+    console.log("Conversation history length:", validHistory.length);
+    console.log("First message role:", validHistory[0]?.role || "none");
+
     // Start chat with history
-    const chat = model.startChat({ history });
+    const chat = model.startChat({ history: validHistory });
 
     // Send message and get response
     const result = await chat.sendMessage(message);

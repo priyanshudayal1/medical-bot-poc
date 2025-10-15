@@ -36,10 +36,12 @@ export default function Home() {
   const [status, setStatus] = useState("connecting");
   const [error, setError] = useState(null);
   const [isCallActive, setIsCallActive] = useState(false);
+  const [hasSpokenIntro, setHasSpokenIntro] = useState(false);
 
   const speechRecognitionRef = useRef(null);
   const textToSpeechRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const currentProcessingController = useRef(null); // Track current API request
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -48,6 +50,11 @@ export default function Home() {
 
   // Speak bot introduction
   const speakBotIntroduction = useCallback(async () => {
+    // Don't speak intro if already spoken
+    if (hasSpokenIntro) {
+      return;
+    }
+
     const introMessage =
       "Hello! I'm Dr. HealthAI, your medical assistant. How can I help you today? Feel free to describe any symptoms or health concerns you have.";
 
@@ -56,20 +63,25 @@ export default function Home() {
       content: introMessage,
     });
 
-    setBotSpeaking(true);
-    setStatus("connected");
+    setHasSpokenIntro(true);
 
+    // Check if TTS is ready before attempting to speak
     try {
-      if (textToSpeechRef.current && textToSpeechRef.current.synth) {
+      if (textToSpeechRef.current?.isReady()) {
+        setBotSpeaking(true);
         await textToSpeechRef.current.speak(introMessage, { rate: 0.95 });
+      } else {
+        console.log(
+          "Speech synthesis not ready yet, skipping voice introduction"
+        );
       }
     } catch (err) {
-      console.error("Speech synthesis error:", err);
-      // Don't show error to user, just log it
+      console.error("Speech synthesis error during introduction:", err);
+      // Silently fail - message is still shown in UI
     } finally {
       setBotSpeaking(false);
     }
-  }, [addMessage, setBotSpeaking, setStatus]);
+  }, [addMessage, setBotSpeaking, hasSpokenIntro]);
 
   // Initialize services
   useEffect(() => {
@@ -81,15 +93,29 @@ export default function Home() {
         speechRecognitionRef.current = new SpeechRecognitionService();
         textToSpeechRef.current = new TextToSpeechService();
 
+        // Wait for TTS to fully initialize
         await textToSpeechRef.current.initialize();
+
+        // Wait until the speech system is fully ready
+        console.log("Waiting for speech system to be fully ready...");
+        const isReady = await textToSpeechRef.current.waitUntilReady(
+          10000,
+          100
+        );
+
+        if (!isReady) {
+          console.error("TTS failed to become ready within timeout");
+          setError(
+            "Voice system initialization timed out, but you can still use text chat"
+          );
+        } else {
+          console.log("Speech system is fully ready!");
+        }
 
         setStatus("connected");
         setIsInitialized(true);
 
-        // Bot introduction after 1 second
-        setTimeout(() => {
-          speakBotIntroduction();
-        }, 1000);
+        console.log("Initialization complete. Ready to start call.");
       } catch (err) {
         console.error("Initialization error:", err);
         setError(err.message);
@@ -107,7 +133,7 @@ export default function Home() {
         textToSpeechRef.current.stop();
       }
     };
-  }, [speakBotIntroduction]);
+  }, []);
 
   // Start call and listening
   const startCall = async () => {
@@ -116,6 +142,9 @@ export default function Home() {
     try {
       setIsCallActive(true);
       setError(null);
+
+      // Speak bot introduction when call starts (only once)
+      await speakBotIntroduction();
 
       // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -139,8 +168,18 @@ export default function Home() {
 
   // Start listening to user voice
   const startListening = () => {
-    if (!speechRecognitionRef.current) return;
+    if (!speechRecognitionRef.current) {
+      console.error("Speech recognition not initialized");
+      return;
+    }
 
+    // Don't start if already listening
+    if (isListening) {
+      console.log("Already listening, skipping start");
+      return;
+    }
+
+    console.log("Starting to listen...");
     setListening(true);
     setStatus("listening");
     setCurrentTranscript("");
@@ -151,9 +190,10 @@ export default function Home() {
 
         if (final.length > 3) {
           // Ignore very short utterances
-          // Stop listening temporarily
-          speechRecognitionRef.current.stop();
-          setListening(false);
+          console.log("User said:", final);
+
+          // DON'T stop listening - keep it running continuously
+          // Just process the message in parallel
 
           // Add user message
           addMessage({
@@ -161,8 +201,10 @@ export default function Home() {
             content: final,
           });
 
-          // Process with AI
-          await processUserMessage(final);
+          // Process with AI (listening continues in background)
+          processUserMessage(final);
+        } else {
+          console.log("Utterance too short, ignoring:", final);
         }
       } else {
         setCurrentTranscript(interim);
@@ -174,24 +216,46 @@ export default function Home() {
       if (error === "not-allowed") {
         setError("Microphone permission denied");
         setIsCallActive(false);
+      } else if (error === "no-speech") {
+        console.log("No speech detected, will auto-restart");
       }
       setListening(false);
-      setStatus("error");
+
+      // Don't set error status for common errors
+      if (error === "not-allowed") {
+        setStatus("error");
+      }
     });
 
     speechRecognitionRef.current.setOnEnd(() => {
-      // Auto-restart listening if call is still active
-      if (isCallActive && !isProcessing && !isBotSpeaking) {
+      console.log("Speech recognition ended");
+      setListening(false);
+
+      // Auto-restart listening immediately if call is still active
+      // Keep listening even while bot is speaking
+      if (isCallActive) {
+        console.log("Auto-restarting listening in 200ms...");
         setTimeout(() => {
-          if (isCallActive) {
-            speechRecognitionRef.current.start();
-            setListening(true);
+          if (isCallActive && !isListening) {
+            console.log("Restarting listening now");
+            try {
+              speechRecognitionRef.current.start();
+              setListening(true);
+              setStatus("listening");
+            } catch (err) {
+              console.error("Failed to restart listening:", err);
+            }
           }
-        }, 500);
+        }, 200);
       }
     });
 
-    speechRecognitionRef.current.start();
+    try {
+      speechRecognitionRef.current.start();
+    } catch (err) {
+      console.error("Failed to start speech recognition:", err);
+      setListening(false);
+    }
   };
 
   // Stop listening
@@ -205,14 +269,44 @@ export default function Home() {
 
   // Process user message with Gemini
   const processUserMessage = async (message) => {
+    // Cancel any ongoing processing
+    if (currentProcessingController.current) {
+      console.log("⚠️ Cancelling previous request...");
+      currentProcessingController.current.abort();
+      currentProcessingController.current = null;
+    }
+
+    // Stop any ongoing speech immediately
+    if (textToSpeechRef.current && isBotSpeaking) {
+      console.log("⚠️ Interrupting bot speech...");
+      textToSpeechRef.current.stop();
+      setBotSpeaking(false);
+    }
+
+    // Create new abort controller for this request
+    const abortController = new AbortController();
+    currentProcessingController.current = abortController;
+
     setProcessing(true);
     setStatus("processing");
 
     try {
-      const response = await axios.post("/api/chat", {
-        message,
-        conversationHistory: messages.slice(-10), // Send last 10 messages for context
-      });
+      const response = await axios.post(
+        "/api/chat",
+        {
+          message,
+          conversationHistory: messages.slice(-10), // Send last 10 messages for context
+        },
+        {
+          signal: abortController.signal, // Pass abort signal
+        }
+      );
+
+      // Check if this request was cancelled
+      if (abortController.signal.aborted) {
+        console.log("Request was cancelled, skipping response");
+        return;
+      }
 
       const botResponse = response.data.response;
 
@@ -222,27 +316,48 @@ export default function Home() {
         content: botResponse,
       });
 
+      // Force stop any previous speech before speaking new response
+      if (textToSpeechRef.current) {
+        textToSpeechRef.current.stop();
+        console.log("🛑 Stopped any previous speech for new response");
+      }
+
+      // Small delay to ensure previous speech is fully stopped
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Speak the response
       setBotSpeaking(true);
-      setStatus("connected");
+      setStatus("speaking");
 
       try {
-        if (textToSpeechRef.current && textToSpeechRef.current.synth) {
+        if (textToSpeechRef.current?.isReady()) {
+          console.log("🔊 Bot speaking NEW response...");
           await textToSpeechRef.current.speak(botResponse, { rate: 0.95 });
+          console.log("✅ Bot finished speaking");
+        } else {
+          console.warn("TTS not ready, skipping speech");
         }
       } catch (speechErr) {
-        console.error("Speech synthesis error:", speechErr);
+        // Check if it was interrupted (not an error)
+        if (speechErr.message && speechErr.message.includes("interrupted")) {
+          console.log("Speech was interrupted by newer query");
+        } else {
+          console.error("Speech synthesis error:", speechErr);
+        }
       }
 
       setBotSpeaking(false);
-
-      // Resume listening after bot finishes speaking
-      if (isCallActive) {
-        setTimeout(() => {
-          startListening();
-        }, 500);
-      }
     } catch (err) {
+      // Check if request was cancelled
+      if (
+        axios.isCancel(err) ||
+        err.name === "AbortError" ||
+        err.name === "CanceledError"
+      ) {
+        console.log("✋ Request cancelled by user (new query received)");
+        return; // Exit silently
+      }
+
       console.error("Failed to process message:", err);
 
       // Check if it's an API key error
@@ -267,22 +382,32 @@ export default function Home() {
         content: errorMessage,
       });
 
+      // Force stop any previous speech before speaking error
+      if (textToSpeechRef.current) {
+        textToSpeechRef.current.stop();
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      setBotSpeaking(true);
       try {
-        if (textToSpeechRef.current && textToSpeechRef.current.synth) {
+        if (textToSpeechRef.current?.isReady()) {
+          console.log("🔊 Bot speaking error message...");
           await textToSpeechRef.current.speak(errorMessage);
         }
       } catch (speechErr) {
         console.error("Speech synthesis error:", speechErr);
       }
-
-      // Resume listening after error
-      if (isCallActive) {
-        setTimeout(() => {
-          startListening();
-        }, 500);
-      }
+      setBotSpeaking(false);
     } finally {
+      // Clear the controller reference if this is the current request
+      if (currentProcessingController.current === abortController) {
+        currentProcessingController.current = null;
+      }
+
       setProcessing(false);
+      setStatus("listening"); // Set status back to listening since it's continuous
+
+      console.log("Processing complete. Listening continues in background.");
     }
   };
 
