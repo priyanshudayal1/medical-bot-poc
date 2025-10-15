@@ -22,7 +22,7 @@ export class SpeechRecognitionService {
 
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
-    this.recognition.lang = "en-US";
+    this.recognition.lang = "te-IN";
 
     this.recognition.onresult = (event) => {
       let interimTranscript = "";
@@ -118,14 +118,20 @@ export class TextToSpeechService {
               return false;
             }
 
-            // Prefer female voices for medical bot
+            // Prefer Telugu voices for medical bot
             this.selectedVoice =
               this.voices.find(
-                (voice) =>
-                  voice.name.includes("Female") ||
-                  voice.name.includes("Samantha")
+                (voice) => voice.lang && voice.lang.startsWith("te")
               ) ||
-              this.voices.find((voice) => voice.lang.startsWith("en")) ||
+              this.voices.find(
+                (voice) =>
+                  voice.lang &&
+                  (voice.lang.includes("te-IN") || voice.lang.includes("te_IN"))
+              ) ||
+              this.voices.find(
+                (voice) =>
+                  voice.name && voice.name.toLowerCase().includes("telugu")
+              ) ||
               this.voices[0];
 
             console.log(`TTS initialized with ${this.voices.length} voices`);
@@ -335,10 +341,17 @@ export class TextToSpeechService {
         if (this.voices.length > 0 && !this.selectedVoice) {
           this.selectedVoice =
             this.voices.find(
-              (voice) =>
-                voice.name.includes("Female") || voice.name.includes("Samantha")
+              (voice) => voice.lang && voice.lang.startsWith("te")
             ) ||
-            this.voices.find((voice) => voice.lang.startsWith("en")) ||
+            this.voices.find(
+              (voice) =>
+                voice.lang &&
+                (voice.lang.includes("te-IN") || voice.lang.includes("te_IN"))
+            ) ||
+            this.voices.find(
+              (voice) =>
+                voice.name && voice.name.toLowerCase().includes("telugu")
+            ) ||
             this.voices[0];
 
           this.isInitialized = true;

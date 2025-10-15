@@ -15,7 +15,7 @@ const MEDICAL_BOT_SYSTEM_PROMPT = `You are Dr. HealthAI, a compassionate and kno
 
 Remember: You are providing general health information, not medical diagnosis or treatment. Always recommend consulting with a qualified healthcare provider for personalized medical advice.
 
-Respond in a warm, professional, and conversational tone suitable for voice interaction.`;
+IMPORTANT: You MUST respond ONLY in Telugu language (తెలుగు). Always reply in Telugu script, not in English or transliteration. Respond in a warm, professional, and conversational tone suitable for voice interaction in Telugu.`;
 
 export async function POST(request) {
   try {

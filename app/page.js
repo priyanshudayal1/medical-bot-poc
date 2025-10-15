@@ -56,7 +56,7 @@ export default function Home() {
     }
 
     const introMessage =
-      "Hello! I'm Dr. HealthAI, your medical assistant. How can I help you today? Feel free to describe any symptoms or health concerns you have.";
+      "నమస్కారం! నేను డాక్టర్ హెల్త్ఏఐ, మీ వైద్య సహాయకుడిని. ఈరోజు నేను మీకు ఎలా సహాయం చేయగలను? దయచేసి మీ లక్షణాలు లేదా ఆరోగ్య సమస్యలను వివరించండి.";
 
     addMessage({
       role: "bot",
