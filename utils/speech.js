@@ -22,7 +22,7 @@ export class SpeechRecognitionService {
 
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
-    this.recognition.lang = "te-IN";
+    this.recognition.lang = "en-US";
 
     this.recognition.onresult = (event) => {
       let interimTranscript = "";
